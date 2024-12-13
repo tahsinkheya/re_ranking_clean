@@ -3,12 +3,11 @@
 
 #SBATCH --output=my_job_output.out  # Output file
 #SBATCH --error=my_job_error.err    # Error file
-#SBATCH --nodes=3
+#SBATCH --nodes=20
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
-#SBATCH --gres=gpu:v100:1
-#SBATCH --time=30:00
+#SBATCH --time=03:00:00
 
 
 
@@ -20,4 +19,4 @@ module load scipy-stack/2024a
 # source .../ENV/bin/activate
 
 # conda activate my_mpi_env
-mpirun -n 3  python3 ../kheya_test.py
+mpirun -n 20  python3 ../kheya_test.py

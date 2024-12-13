@@ -161,10 +161,11 @@ class Calibration(object):
         all_users = []
         top_k = self.top_k
         num_users = len(scores)
-        # for u in range(num_users):
-        for u in range(rank*1,rank*1+1):
-            remaining_items = list(range(20))
-            # remaining_items = all_items
+        # for u in range(rank*2,rank*2+2):
+        upper_bound= min(num_users,rank*50+50)
+        for u in range(rank*50,upper_bound):
+            # remaining_items = list(range(20))
+            remaining_items = all_items
             u_calibrated = []
             for k in range(top_k):
                 diversity_scores = [

@@ -30,29 +30,3 @@ Also make sure that all modulefiles written in TCL start with the string
 
 
 
-Traceback (most recent call last):
-  File "/lustre04/scratch/reda/tahsin/reranking_fairnes/batch_stuff/../kheya_test.py", line 6, in <module>
-    print(pwd)
-          ^^^
-NameError: name 'pwd' is not defined. Did you mean: 'pd'?
-Traceback (most recent call last):
-  File "/lustre04/scratch/reda/tahsin/reranking_fairnes/batch_stuff/../kheya_test.py", line 6, in <module>
-    print(pwd)
-          ^^^
-NameError: name 'pwd' is not defined. Did you mean: 'pd'?
-Traceback (most recent call last):
-  File "/lustre04/scratch/reda/tahsin/reranking_fairnes/batch_stuff/../kheya_test.py", line 6, in <module>
-    print(pwd)
-          ^^^
-NameError: name 'pwd' is not defined. Did you mean: 'pd'?
---------------------------------------------------------------------------
-Primary job  terminated normally, but 1 process returned
-a non-zero exit code. Per user-direction, the job has been aborted.
---------------------------------------------------------------------------
---------------------------------------------------------------------------
-mpirun detected that one or more processes exited with non-zero status, thus causing
-the job to be terminated. The first process to do so was:
-
-  Process name: [[60575,1],0]
-  Exit code:    1
---------------------------------------------------------------------------
