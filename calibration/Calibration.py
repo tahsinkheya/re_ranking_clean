@@ -3,18 +3,20 @@
 import pandas as pd
 import os
 import numpy as np
-import torch
-import time
+# import torch
+# import time
 from logging import getLogger
 import random
 import numpy as np
 from scipy.stats import entropy
-
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
 
 class Calibration(object):
     def __init__(self, config, movies, top_k, unique_genres, users):
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        self.device = torch.device(self.device)
+        # self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        # self.device = torch.device(self.device)
         self.reco_distribution = []
         self.kl = []
         self.top_k = top_k
@@ -159,8 +161,10 @@ class Calibration(object):
         all_users = []
         top_k = self.top_k
         num_users = len(scores)
-        for u in range(num_users):
-            remaining_items = all_items
+        # for u in range(num_users):
+        for u in range(rank*1,rank*1+1):
+            remaining_items = list(range(20))
+            # remaining_items = all_items
             u_calibrated = []
             for k in range(top_k):
                 diversity_scores = [
@@ -173,6 +177,7 @@ class Calibration(object):
                 u_calibrated.append(best_item)
                 remaining_items.pop(max_index)
                 print(u_calibrated)
+            print(f"user {u} u_calibrate {u_calibrated}")
 
             all_users.append(u_calibrated)
 
