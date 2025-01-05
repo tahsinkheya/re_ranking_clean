@@ -1,0 +1,27 @@
+\ Model Item_Selection_More_Items_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Maximize
+  0 P[0] + 0 P[2] + 0 log_terms[0]
+Subject To
+ category_sum_0: - 0.329 xi[0] - 0.296 xi[1] - 0.153 xi[2] - 0.253 xi[3]
+   - 0.2 xi[4] - 0.15 xi[5] - 0.4 xi[6] - 0.25 xi[7] + category_sums[0]
+   = 0
+ total_sum_constraint: - category_sums[0] - category_sums[1]
+   - category_sums[2] + total_sum = 0
+Bounds
+ category_sums[0] free
+ category_sums[2] free
+ total_sum free
+ P[0] free
+ P[2] >= 1e-05
+Binaries
+ xi[0] xi[1] xi[2] xi[3] xi[4] xi[5] xi[6] xi[7]
+General Constraints
+\ P[0] = category_sums[0] / total_sum
+ proportion_0: P[0] = NL : ( DIVIDE , -1 , -1 ) 
+  ( VARIABLE , category_sums[0] , 0 ) ( VARIABLE , total_sum , 0 )
+\ P[2] = category_sums[2] / total_sum
+ proportion_2: P[2] = NL : ( DIVIDE , -1 , -1 ) 
+  ( VARIABLE , category_sums[2] , 0 ) ( VARIABLE , total_sum , 0 )
+ 0_log: log_terms[0] = LOG ( P[0] )
+End
