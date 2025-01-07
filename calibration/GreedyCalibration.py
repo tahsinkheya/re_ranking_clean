@@ -62,8 +62,8 @@ class GreedyCalibration(object):
     def compute_diversity_score(self, reco_items, uid, scores, b):
         alpha = 0.01
         sum_score = 0
-        current_user_sensitive_attr = users.loc[
-            users["userID"] == uid, self.sensitive_attr
+        current_user_sensitive_attr = self.users_df.loc[
+            self.users_df["userID"] == uid, self.sensitive_attr
         ].item()
         compare_dist = self.sensitive_compare_dist[current_user_sensitive_attr]
         reco_dist = self.get_recom_distribution(reco_items, uid, compare_dist, alpha)[
@@ -110,7 +110,7 @@ class GreedyCalibration(object):
 
     def get_new_recommendations(self, reco, scores, all_items):
         """reco is 6040x50 and scores is 6040x3416"""
-        b = 0.69  # beta for the fairness term
+        b = 0.50  # beta for the fairness term
         all_users = []
         top_k = self.top_k
         num_users = len(scores)
