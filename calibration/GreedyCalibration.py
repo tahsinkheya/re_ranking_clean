@@ -1,5 +1,5 @@
 # tahsin kheya
-# last modified 11/12/2024
+# last modified 07/01/2025
 import pandas as pd
 import os
 import numpy as np
@@ -16,30 +16,20 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
 
-class Calibration(object):
-    def __init__(self, config, movies, top_k, unique_genres, users):
-        # self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        # self.device = torch.device(self.device)
-        self.reco_distribution = []
-        self.kl = []
+class GreedyCalibration(object):
+    def __init__(self, config, movies, top_k, unique_genres, users, sensitive_attr):
         self.top_k = top_k
-        self.gkl = []
-        self.gender_df = users
+        self.users_df = users
         self.actual_genre_dist = pd.read_csv(
             os.path.join(config["user_genre_dist_file"]),
             sep="\t",
         )
         self.actual_genre_dist = self.actual_genre_dist.sort_values(by="userID")
         self.unique_genres = unique_genres
-        self.config = config
         self.item_df = movies
-        self.actual_distribution_without_id = self.actual_genre_dist.drop(
-            columns=["userID"]
-        )
-        self.actual_distribution_without_id = self.actual_distribution_without_id.drop(
-            columns=["user_timestamp_sum"]
-        ).to_numpy()
-        self.actual_distribution_gender = []
+        self.sensitive_attr = sensitive_attr
+        self.sensitive_compare_dist = []
+        self.actual_distribution_sensitive = []
 
     def get_recom_distribution(self, reco, uid, compare_dist, alpha):
         reco = np.array(reco)
@@ -59,6 +49,7 @@ class Calibration(object):
         merged_df[self.unique_genres] = (
             merged_df["weight_factor"].values[:, None] * merged_df[self.unique_genres]
         )
+
         for i, genre in enumerate(self.unique_genres):
             merged_df[genre] = (1 - alpha) * merged_df[genre] + alpha * compare_dist[i]
 
@@ -71,19 +62,10 @@ class Calibration(object):
     def compute_diversity_score(self, reco_items, uid, scores, b):
         alpha = 0.01
         sum_score = 0
-
-        # recommended dist mean for each gender
-        male_user_ids = self.gender_df[self.gender_df["Gender"] == 0]["userID"]
-        male_user_ids = male_user_ids.to_list()
-        gender_genre_dist = self.actual_distribution_gender
-
-        if uid in male_user_ids:
-            compare_dist = gender_genre_dist[self.unique_genres].to_numpy()[
-                1
-            ]  # this is the female avg genre pref
-        else:
-            compare_dist = gender_genre_dist[self.unique_genres].to_numpy()[0]
-
+        current_user_sensitive_attr = users.loc[
+            users["userID"] == uid, self.sensitive_attr
+        ].item()
+        compare_dist = self.sensitive_compare_dist[current_user_sensitive_attr]
         reco_dist = self.get_recom_distribution(reco_items, uid, compare_dist, alpha)[
             0
         ]  # sum wr(i)q˜(д|i),
@@ -101,22 +83,33 @@ class Calibration(object):
         return (1 - b) * sum_score + b * faireness_term
 
     def get_improved_reco(self, top_items, items, scores):
+        self.get_sensitive_genre_dist()
+
         return self.get_new_recommendations(
             reco=top_items, scores=scores, all_items=items
         )
 
-    def get_gender_genre_dist(self):
-        actual_dist_gender = pd.merge(
-            self.actual_genre_dist, self.gender_df, on="userID"
+    def get_sensitive_genre_dist(self):
+        actual_dist_sensitive = pd.merge(
+            self.actual_genre_dist, self.users_df, on="userID"
         )
-        gender_genre_weights_a = actual_dist_gender.groupby("Gender")[
+        sensitive_genre_weights_a = actual_dist_sensitive.groupby(self.sensitive_attr)[
             self.unique_genres
         ].mean()
-        self.actual_distribution_gender = gender_genre_weights_a.sort_index()
+
+        self.actual_distribution_sensitive = sensitive_genre_weights_a.sort_index()
+
+        sensitive_compare_dist = self.actual_distribution_sensitive.sum()
+
+        self.sensitive_compare_dist = self.actual_distribution_sensitive.apply(
+            lambda r: sensitive_compare_dist - r, axis=1
+        )
+        self.sensitive_compare_dist = (
+            self.sensitive_compare_dist.sort_index().to_numpy()
+        )
 
     def get_new_recommendations(self, reco, scores, all_items):
         """reco is 6040x50 and scores is 6040x3416"""
-        self.get_gender_genre_dist()
         b = 0.69  # beta for the fairness term
         all_users = []
         top_k = self.top_k
