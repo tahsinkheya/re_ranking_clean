@@ -110,12 +110,13 @@ class GreedyCalibration(object):
         )
 
     def normalize_scores(self, diversity_scores, b):
+        filtered_scores = [x for x in diversity_scores if isinstance(x, tuple) and len(x) == 2]
+        
+        min_score = min(filtered_scores, key=lambda x: x[0])[0]
+        max_score = max(filtered_scores, key=lambda x: x[0])[0]
 
-        min_score = min(diversity_scores, key=lambda x: x[0])[0]
-        max_score = max(diversity_scores, key=lambda x: x[0])[0]
-
-        min_fairness = min(diversity_scores, key=lambda x: x[1])[1]
-        max_fairness = max(diversity_scores, key=lambda x: x[1])[1]
+        min_fairness = min(filtered_scores, key=lambda x: x[1])[1]
+        max_fairness = max(filtered_scores, key=lambda x: x[1])[1]
 
         all_scores = []
         for i in range(diversity_scores.__len__()):
