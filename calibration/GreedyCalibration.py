@@ -72,15 +72,15 @@ class GreedyCalibration(object):
         if (
             np.any(reco_dist) == False
         ):  # just an extra check here. the only there will be a 0 in here is when the movie has no genres.
-            return -9999
+            return 0,-9999
         else:
             reco_dist = np.log(reco_dist)  # log sum wr(i)q˜(д|i),
             faireness_term = np.sum(compare_dist * reco_dist)
 
         for r in range(len(reco_items)):
             sum_score += scores[reco_items[r]]
-
-        return (1 - b) * sum_score + b * faireness_term
+            
+        return (sum_score , faireness_term)
 
     def get_improved_reco(self, top_items, items, scores):
         self.get_sensitive_genre_dist()
@@ -107,6 +107,23 @@ class GreedyCalibration(object):
         self.sensitive_compare_dist = (
             self.sensitive_compare_dist.sort_index().to_numpy()
         )
+        
+    def normalize_scores(self, diversity_scores, b):
+       
+        min_score = min(diversity_scores, key=lambda x: x[0])[0]
+        max_score = max(diversity_scores, key=lambda x: x[0])[0]
+        
+        min_fairness = min(diversity_scores, key=lambda x: x[1])[1]
+        max_fairness = max(diversity_scores, key=lambda x: x[1])[1]
+        
+        all_scores = []
+        for i in range(diversity_scores.__len__()):
+            score = (diversity_scores[i][0]-min_score)/max_score
+            fairness_term = (diversity_scores[i][1]-min_fairness)/max_fairness
+            # print(f"score {score} ft {fairness_term} total {(1 - b) * score + b * fairness_term}")
+            all_scores.append((1 - b) * score + b * fairness_term)
+        
+        return all_scores
 
     def get_new_recommendations(self, reco, scores, all_items):
         """reco is 6040x50 and scores is 6040x3416"""
@@ -125,12 +142,13 @@ class GreedyCalibration(object):
                     self.compute_diversity_score(u_calibrated + [i], u, scores[u], b)
                     for i in remaining_items
                 ]
-                max_index = np.argmax(diversity_scores)
+                norm_diversity_scores = self.normalize_scores(diversity_scores,b)
+                max_index = np.argmax(norm_diversity_scores)
 
                 best_item = remaining_items[max_index]
                 u_calibrated.append(best_item)
                 remaining_items.pop(max_index)
-                print(u_calibrated)
+                # print(u_calibrated)
             print(f"user {u} u_calibrate {u_calibrated}")
 
             all_users.append(u_calibrated)
