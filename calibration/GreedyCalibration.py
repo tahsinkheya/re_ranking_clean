@@ -121,14 +121,11 @@ class GreedyCalibration(object):
         all_scores = []
         for i in range(diversity_scores.__len__()):
             if diversity_scores[i] != 0:
-                score = diversity_scores[i][0]
-                fairness_term = (
-                    (diversity_scores[i][1] - min_fairness)
-                    / (max_fairness - min_fairness)
-                ) * max_score
-                print(
-                    f"score {score} ft {fairness_term} total {(1 - b) * score + b * fairness_term}"
-                )
+                score = (diversity_scores[i][0]- min_score) /(max_score-min_score)
+                fairness_term = (diversity_scores[i][1]-min_fairness)/(max_fairness-min_fairness)
+                # print(
+                #     f"score {score} ft {fairness_term} total {(1 - b) * score + b * fairness_term}"
+                # )
                 all_scores.append((1 - b) * score + b * fairness_term)
             else:
                 # print(f"index {i}")
@@ -138,7 +135,7 @@ class GreedyCalibration(object):
 
     def get_new_recommendations(self, reco, scores, all_items):
         """reco is 6040x50 and scores is 6040x3416"""
-        b = 0.50  # beta for the fairness term
+        b = 0.70  # beta for the fairness term
         all_users = []
         top_k = self.top_k
         num_users = len(scores)
