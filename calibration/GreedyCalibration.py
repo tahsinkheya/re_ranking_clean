@@ -135,8 +135,8 @@ class GreedyCalibration(object):
         top_k = self.top_k
         num_users = len(scores)
         # for u in range(rank*2,rank*2+2):
-        upper_bound = min(num_users, rank * 50 + 50)
-        for u in range(rank * 50, upper_bound):
+        upper_bound = min(num_users, rank * 25 + 25)
+        for u in range(rank * 25, upper_bound):
             # remaining_items = list(range(20))
             remaining_items = all_items
             u_calibrated = []

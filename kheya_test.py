@@ -73,7 +73,7 @@ user_features_numpy = users.to_numpy()
 
 item_ids = movies["itemID"].to_numpy()
 item_ids
-top_k = 10
+top_k = 20
 
 data_load_end = time.time()
 print(f"Data loaded in {data_load_end - data_load_start:.2f} seconds.")
@@ -81,7 +81,7 @@ print(f"Data loaded in {data_load_end - data_load_start:.2f} seconds.")
 calibration_start = time.time()
 sensitive_attr = "Occupation_Code"
 
-config = {"user_genre_dist_file": "../data/ml-100K/pgui.csv"}
+config = {"user_genre_dist_file": "../data/ml-100k/pgui.csv"}
 calibration = GreedyCalibration(
     config, movies, top_k, unique_genres, users, sensitive_attr
 )
