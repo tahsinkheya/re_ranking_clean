@@ -69,14 +69,9 @@ class GreedyCalibration(object):
         reco_dist = self.get_recom_distribution(reco_items, uid, compare_dist, alpha)[
             0
         ]  # sum wr(i)q˜(д|i),
-        if reco_items.__contains__(
-            793
-        ):  # just an extra check here. the only there will be a 0 in here is when the movie has no genres.
-            # print("here")
-            return 0
-        else:
-            reco_dist = np.log(reco_dist)  # log sum wr(i)q˜(д|i),
-            faireness_term = np.sum(compare_dist * reco_dist)
+        
+        reco_dist = np.log(reco_dist)  # log sum wr(i)q˜(д|i),
+        faireness_term = np.sum(compare_dist * reco_dist)
 
         for r in range(len(reco_items)):
             sum_score += scores[reco_items[r]]
