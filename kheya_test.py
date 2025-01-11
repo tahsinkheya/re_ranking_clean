@@ -12,13 +12,13 @@ print(os.getcwd())
 start_time = time.time()
 print("Loading data...")
 data_load_start = time.time()
-reco_matrix = np.load("../test/reco_matrix.npy")[0]
+reco_matrix = np.load("../model_reco/reco_matrix_mf_100k.npy")[0]
 # scores = np.load("reco_matrix_mapped_scores.npy")[0]
 print(reco_matrix.shape)
 # print(scores.shape)
 import pickle
 
-with open("../test/score_dicts.pkl", "rb") as file:
+with open("../model_reco/score_dicts_mf100k.pkl", "rb") as file:
     scores = pickle.load(file)
 print(f"{os.getcwd()} yo yo ")
 
@@ -56,10 +56,8 @@ for genre in unique_genres:
     movies[genre] = 0
 
 for index, row in movies.iterrows():
-    if row["itemID"] != 793:  ########change this ##############
-        genres = row["genres"].split("|")
-    else:
-        genres = ""
+    genres = row["genres"].split("|")
+    
     for genre in genres:
         movies.at[index, genre] = 1
 
@@ -67,7 +65,6 @@ users = pd.read_csv("../data/ml-100k/u_id_mapping_demographic_.csv", sep="\t")
 
 users = users.sort_values(by="userID")
 
-users = users.sort_values(by="userID")
 
 # users = users.drop(columns=users.columns[0])
 gender_map = {"M": 0, "F": 1}
@@ -84,7 +81,7 @@ print(f"Data loaded in {data_load_end - data_load_start:.2f} seconds.")
 calibration_start = time.time()
 sensitive_attr = "Occupation_Code"
 
-config = {"user_genre_dist_file": "../data/ml-100k/pgui.csv"}
+config = {"user_genre_dist_file": "../data/ml-100K/pgui.csv"}
 calibration = GreedyCalibration(
     config, movies, top_k, unique_genres, users, sensitive_attr
 )
