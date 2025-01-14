@@ -37,6 +37,8 @@ class GenrePrecisionMulti:
         merged_df[self.unique_genres] = merged_df[self.unique_genres].div(
             merged_df[self.unique_genres].sum(axis=1), axis=0
         )
+        # print(merged_df)
+        
 
         reco_distribution = merged_df[["userID"] + self.unique_genres]
 
@@ -48,6 +50,7 @@ class GenrePrecisionMulti:
             reco_distribution, sensitive_attr
         )
 
+       
         # return self.genre_result(g_reco_distribution)
         return self.pairwise_abs_diff(g_reco_distribution)
 
