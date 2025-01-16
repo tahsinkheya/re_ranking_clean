@@ -10,14 +10,16 @@ from logging import getLogger
 import random
 import numpy as np
 from scipy.stats import entropy
-from mpi4py import MPI
+# from mpi4py import MPI
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
+# comm = MPI.COMM_WORLD
+# rank = comm.Get_rank()
 
 
-class GreedyCalibration(object):
-    def __init__(self, config, movies, top_k, unique_genres, users, sensitive_attr, beta):
+class GreedyCalibrationFree(object):
+    def __init__(
+        self, config, movies, top_k, unique_genres, users, sensitive_attr, beta
+    ):
         self.top_k = top_k
         self.beta = beta
         self.users_df = users
@@ -49,7 +51,7 @@ class GreedyCalibration(object):
         )
         for i, genre in enumerate(self.unique_genres):
             merged_df[genre] = (1 - alpha) * merged_df[genre] + alpha * compare_dist[i]
-       
+
         merged_df[self.unique_genres] = (
             merged_df["weight_factor"].values[:, None] * merged_df[self.unique_genres]
         )
@@ -72,7 +74,7 @@ class GreedyCalibration(object):
         reco_dist = self.get_recom_distribution(reco_items, uid, compare_dist, alpha)[
             0
         ]  # sum wr(i)q˜(д|i),
-        
+
         reco_dist = np.log(reco_dist)  # log sum wr(i)q˜(д|i),
         faireness_term = np.sum(compare_dist * reco_dist)
 
@@ -108,8 +110,10 @@ class GreedyCalibration(object):
         )
 
     def normalize_scores(self, diversity_scores, b):
-        filtered_scores = [x for x in diversity_scores if isinstance(x, tuple) and len(x) == 2]
-        
+        filtered_scores = [
+            x for x in diversity_scores if isinstance(x, tuple) and len(x) == 2
+        ]
+
         min_score = min(filtered_scores, key=lambda x: x[0])[0]
         max_score = max(filtered_scores, key=lambda x: x[0])[0]
 
@@ -119,8 +123,10 @@ class GreedyCalibration(object):
         all_scores = []
         for i in range(diversity_scores.__len__()):
             if diversity_scores[i] != 0:
-                score = (diversity_scores[i][0]- min_score) /(max_score-min_score)
-                fairness_term = (diversity_scores[i][1]-min_fairness)/(max_fairness-min_fairness)
+                score = (diversity_scores[i][0] - min_score) / (max_score - min_score)
+                fairness_term = (diversity_scores[i][1] - min_fairness) / (
+                    max_fairness - min_fairness
+                )
                 # print(
                 #     f"score {score} ft {fairness_term} total {(1 - b) * score + b * fairness_term}"
                 # )
@@ -137,9 +143,9 @@ class GreedyCalibration(object):
         all_users = []
         top_k = self.top_k
         num_users = len(scores)
-        upper_bound = min(num_users, rank * 25 + 25)
-        for u in range(rank * 25, upper_bound):
-           # remaining_items = list(range(20))
+        # upper_bound = min(num_users, rank * 25 + 25)
+        for u in range(0, num_users):
+            # remaining_items = list(range(20))
             remaining_items = reco[u]
             # print(remaining_items)
             u_calibrated = []
@@ -149,21 +155,19 @@ class GreedyCalibration(object):
                     for i in remaining_items
                 ]
                 # print(f"before {remaining_items} len {remaining_items.__len__()}")
-                
+
                 norm_diversity_scores = self.normalize_scores(diversity_scores, b)
                 max_index = np.argmax(norm_diversity_scores)
                 best_item = remaining_items[max_index]
                 # print(f"best item {best_item}")
                 # popped_element = arr[index_to_pop     ]
                 # new_arr = np.delete(arr, index_to_pop)
-                
+
                 u_calibrated.append(best_item)
-                remaining_items=np.delete(remaining_items, max_index)
+                remaining_items = np.delete(remaining_items, max_index)
                 # print(f"after {remaining_items} len {remaining_items.__len__()}")
                 # print(u_calibrated)
 
-
-                
                 # remaining_items.pop(max_index)
                 # print(u_calibrated)
             print(f"user {u} u_calibrate {u_calibrated}")

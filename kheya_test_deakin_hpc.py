@@ -101,33 +101,35 @@ print(
 # print(f"right now working on {rank*30} - {rank*30+30}")
 print(">>" * 10)
 print(reranked_reco)
+np.save("reco_mat_test", reranked_reco)
+
 print(">>" * 10)
 
-node_data = reranked_reco
-all_data = comm.gather(node_data, root=0)
+# node_data = reranked_reco
+# all_data = comm.gather(node_data, root=0)
 
 
-def write_to_file(all_data, top_k):
-    with open("reranked_recommendations.csv", "w", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["user_id"] + [f"top_{i+1}" for i in range(top_k)])
-        print(":" * 10)
-        print(all_data)
-        print(all_data.__len__())
-        print(":" * 10)
-        i = 0
-        for reco in all_data:
-            r = [str(i)] + [str(w) for w in reco]
-            writer.writerow(r)
-            i = i + 1
+# def write_to_file(all_data, top_k):
+#     with open("reranked_recommendations.csv", "w", newline="") as csvfile:
+#         writer = csv.writer(csvfile)
+#         writer.writerow(["user_id"] + [f"top_{i+1}" for i in range(top_k)])
+#         print(":" * 10)
+#         print(all_data)
+#         print(all_data.__len__())
+#         print(":" * 10)
+#         i = 0
+#         for reco in all_data:
+#             r = [str(i)] + [str(w) for w in reco]
+#             writer.writerow(r)
+#             i = i + 1
 
 
-if rank == 0:
-    write_start = time.time()
-    all_data = [item for sublist in all_data for item in sublist]
-    write_to_file(all_data, top_k)
-    write_end = time.time()
-    print(f"Data writing took {write_end - write_start:.2f} seconds.")
+# if rank == 0:
+#     write_start = time.time()
+#     all_data = [item for sublist in all_data for item in sublist]
+#     write_to_file(all_data, top_k)
+#     write_end = time.time()
+#     print(f"Data writing took {write_end - write_start:.2f} seconds.")
 
 end_time = time.time()
 print(f"Total script execution time: {end_time - start_time:.2f} seconds.")
