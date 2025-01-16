@@ -17,8 +17,9 @@ rank = comm.Get_rank()
 
 
 class GreedyCalibration(object):
-    def __init__(self, config, movies, top_k, unique_genres, users, sensitive_attr):
+    def __init__(self, config, movies, top_k, unique_genres, users, sensitive_attr, beta):
         self.top_k = top_k
+        self.beta = beta
         self.users_df = users
         self.actual_genre_dist = pd.read_csv(
             os.path.join(config["user_genre_dist_file"]),
@@ -46,12 +47,14 @@ class GreedyCalibration(object):
         merged_df[self.unique_genres] = merged_df[self.unique_genres].div(
             merged_df[self.unique_genres].sum(axis=1), axis=0
         )
+        for i, genre in enumerate(self.unique_genres):
+            merged_df[genre] = (1 - alpha) * merged_df[genre] + alpha * compare_dist[i]
+       
         merged_df[self.unique_genres] = (
             merged_df["weight_factor"].values[:, None] * merged_df[self.unique_genres]
         )
-
-        for i, genre in enumerate(self.unique_genres):
-            merged_df[genre] = (1 - alpha) * merged_df[genre] + alpha * compare_dist[i]
+        # for i, genre in enumerate(self.unique_genres):
+        #     merged_df[genre] = (1 - alpha) * merged_df[genre] + alpha * compare_dist[i]
 
         summed_genre = (
             merged_df.groupby("userID")[self.unique_genres].sum().reset_index()
@@ -130,27 +133,39 @@ class GreedyCalibration(object):
 
     def get_new_recommendations(self, reco, scores, all_items):
         """reco is 6040x50 and scores is 6040x3416"""
-        b = 0.70  # beta for the fairness term
+        b = self.beta  # beta for the fairness term
         all_users = []
         top_k = self.top_k
         num_users = len(scores)
         # for u in range(rank*2,rank*2+2):
         upper_bound = min(num_users, rank * 25 + 25)
         for u in range(rank * 25, upper_bound):
-            # remaining_items = list(range(20))
-            remaining_items = all_items
+           # remaining_items = list(range(20))
+            remaining_items = reco[u]
+            # print(remaining_items)
             u_calibrated = []
             for k in range(top_k):
                 diversity_scores = [
                     self.compute_diversity_score(u_calibrated + [i], u, scores[u], b)
                     for i in remaining_items
                 ]
+                # print(f"before {remaining_items} len {remaining_items.__len__()}")
+                
                 norm_diversity_scores = self.normalize_scores(diversity_scores, b)
                 max_index = np.argmax(norm_diversity_scores)
-
                 best_item = remaining_items[max_index]
+                # print(f"best item {best_item}")
+                # popped_element = arr[index_to_pop     ]
+                # new_arr = np.delete(arr, index_to_pop)
+                
                 u_calibrated.append(best_item)
-                remaining_items.pop(max_index)
+                remaining_items=np.delete(remaining_items, max_index)
+                # print(f"after {remaining_items} len {remaining_items.__len__()}")
+                # print(u_calibrated)
+
+
+                
+                # remaining_items.pop(max_index)
                 # print(u_calibrated)
             print(f"user {u} u_calibrate {u_calibrated}")
 
