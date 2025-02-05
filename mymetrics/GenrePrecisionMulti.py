@@ -51,7 +51,7 @@ class GenrePrecisionMulti:
         )
 
        
-        # return self.genre_result(g_reco_distribution)
+        # return self.genre_result(g_reco_d`istribution)
         return self.pairwise_abs_diff(g_reco_distribution)
 
     def get_sensitive_attr_genre_dist(self, user_reco, sensitive_attr):
@@ -67,6 +67,9 @@ class GenrePrecisionMulti:
         return distribution_sensitive_attr
 
     def pairwise_abs_diff(self, sensitive_attr_genre_dist):
+        '''
+        sensitive_attr_genre_dist : the genre distibution for each genre grouped by sensitive attribute given 
+        '''
         ret_val = 0
         genre_dist = []
         for g in self.unique_genres:

@@ -1,9 +1,9 @@
 import numpy as np
-from cornac.metrics import RatingMetric
 import pandas as pd
+from math import comb
+from itertools import combinations
 
-
-class GenreNDCG(RatingMetric):
+class GenreNDCGMulti:
     def __init__(self, gender_df, unique_genres,top_k, **kwargs):
         """
         initializating genders of the users
@@ -17,11 +17,13 @@ class GenreNDCG(RatingMetric):
         self.unique_genres = unique_genres
         self.top_k = top_k
 
-    def compute(self, reco_matrix, item_df):
+    def compute(self, reco_matrix, item_df, sensitive_attr):
         """
         reco_matrix : n_userxk np array containing the ranked recommended list for users
         item_df : pd df containing all items with ids and genre info as ohe
         returns the abs diff for each gender genre distribution
+        sensitive_attr: the sensitive attribute for which we wanna find unfairness
+        
         """
 
         rank_val = np.arange(2, self.top_k+2)
@@ -49,22 +51,42 @@ class GenreNDCG(RatingMetric):
             self.unique_genres
         ].mean()
 
-        g_reco_distribution = self.get_gender_genre_dist(reco_distribution)
+        g_reco_distribution = self.get_sensitive_attr_genre_dist(reco_distribution, sensitive_attr)
 
         return self.genre_result(g_reco_distribution)
 
-    def get_gender_genre_dist(self, user_reco):
+    def get_sensitive_attr_genre_dist(self, user_reco,sensitive_attr):
         """
         user_reco : is the recommended genre distibution for all users
+        sensitive_attr : the sensitive attribute for which we wanna find unfairness
+        
         """
         recomen_df = pd.merge(user_reco, self.gender_df, on="userID")
-        gender_genre_weights_r = recomen_df.groupby("Gender")[self.unique_genres].mean()
-        distribution_gender = gender_genre_weights_r.sort_index()
+        sensitive_attr_genre_weights_r = recomen_df.groupby(sensitive_attr)[self.unique_genres].mean()
+        distribution_gender = sensitive_attr_genre_weights_r.sort_index()
         return distribution_gender
 
-    def genre_result(self, gender_genre_dist):
+    def pairwise_abs_diff(self, sensitive_attr_genre_dist):
         """
-        gender_genre_dist : the genre distibution for each genre grouped by gender
+        sensitive_attr_genre_dist : the genre distibution for each genre grouped by sensitive attribute given 
         """
+        ret_val = 0
+        genre_dist = []
+        for g in self.unique_genres:
+            genre_pref = sensitive_attr_genre_dist[g].values
+            g_dist = 0
+            for si, sj in combinations(range(len(genre_pref)), 2):
+                # print(f"si {si} sj {sj}")
+                val = genre_pref[si] - genre_pref[sj]
+                ret_val += abs(val)
+                g_dist = g_dist + abs(val)
+            genre_dist.append(g_dist)
         gender_genre_dist = gender_genre_dist.to_numpy()
-        return gender_genre_dist[0] - gender_genre_dist[1]
+        possible_comb = comb(len(sensitive_attr_genre_dist), 2)
+        print("::"*10)
+        print(gender_genre_dist[0] - gender_genre_dist[1])
+        print("::"*10)
+        
+        return ret_val / possible_comb, np.array(genre_dist) / possible_comb
+        
+        
