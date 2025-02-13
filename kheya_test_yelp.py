@@ -8,13 +8,16 @@ import os
 
 start_time = time.time()
 data_load_start = time.time()
-reco_matrix = np.load("../model_reco/yelp/wmf/reco_matrix_wmf_yelp100k_100.npy")[0]
+reco_matrix = np.load("../model_reco/yelp/mf/reco_matrix_mf_yelp100k_100.npy")[0]
 print(reco_matrix.shape)
 # print(scores.shape)
 import pickle
 # tahsin/reranking_fairnes/model_reco/neumf/score_dicts_neumf100k.pkl
-with open("../model_reco/yelp/wmf/score_dicts_wmf_yelp100k.pkl", "rb") as file:
+with open("../model_reco/yelp/mf/score_dicts_mf_yelp100k.pkl", "rb") as file:
     # tahsin/reranking_fairnes/model_reco/mf/score_dicts_mf100k.pkl
+    # tahsin/reranking_fairnes/model_reco/yelp/neumf/score_dicts_neumf_yelp100k.pkl
+    # tahsin/reranking_fairnes/model_reco/yelp/mf/score_dicts_mf_yelp100k.pkl
+    # tahsin/reranking_fairnes/model_reco/yelp/mf/reco_matrix_mf_yelp100k_100.npy
     scores = pickle.load(file)
 print(f"{os.getcwd()} yo yo ")
 
@@ -97,7 +100,7 @@ print(f"Data loaded in {data_load_end - data_load_start:.2f} seconds.")
 
 calibration_start = time.time()
 sensitive_attr = "Gender"
-beta = 0.1
+beta = 0.8
 config = {"user_genre_dist_file": "../data/yelp-100K/pgui.csv"}
 calibration = GreedyCalibration(
     config, restaurants, top_k, unique_categories, users, sensitive_attr, beta
@@ -125,7 +128,7 @@ all_data = comm.gather(node_data, root=0)
 
 
 def write_to_file(all_data, top_k):
-    with open("Gender_1_yelp.csv", "w", newline="") as csvfile:
+    with open("Gender_8_yelp_mf.csv", "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["user_id"] + [f"top_{i+1}" for i in range(top_k)])
         print(":" * 10)

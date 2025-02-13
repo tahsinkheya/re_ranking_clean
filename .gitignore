@@ -1,2 +1,4 @@
 /test
 /results
+/model_reco
+/experiments/*.log
