@@ -2,7 +2,9 @@ from math import comb
 from itertools import combinations
 import numpy as np
 import pandas as pd
-
+# References
+#Kheya, T. A., Bouadjenek, M. R., & Aryal, S. (2025, April). Unmasking gender bias in recommendation systems and enhancing category-aware fairness. Proceedings of the ACM Web Conference 2025 (WWW '25), 12. Association for Computing Machinery. https://doi.org/10.1145/3696410.3714528
+ 
 
 class GenrePrecisionMulti:
     def __init__(self, gender_df, unique_genres, top_k, **kwargs):
