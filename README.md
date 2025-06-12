@@ -1,3 +1,7 @@
+code for paper titled Bias vs Bias - Dawn of Justice:
+A Fair Fight in Recommendation Systems
+published in ECMLPKDD 2025
+
 <b>To get fair category-aware re-ranked items for users just follow these simple steps!</b>
 
 ## step 1
