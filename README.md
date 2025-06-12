@@ -1,4 +1,4 @@
-code for paper titled Bias vs Bias - Dawn of Justice:
+Code for paper titled Bias vs Bias - Dawn of Justice:
 A Fair Fight in Recommendation Systems
 published in ECMLPKDD 2025
 
